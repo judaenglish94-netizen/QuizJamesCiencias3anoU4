@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Ciências - Formação e Composição do Solo</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts - Fredoka & Nunito -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0fdf4;
+        }
+        h1, h2, h3, .font-heading {
+            font-family: 'Fredoka', cursive;
+        }
+        .option-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .option-card:hover:not(.disabled) {
+            transform: translateY(-2px);
+            border-color: #16a34a;
+            background-color: #f0fdf4;
+        }
+        .option-card.selected {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .option-card.correct {
+            border-color: #16a34a;
+            background-color: #dcfce7;
+            color: #14532d;
+        }
+        .option-card.incorrect {
+            border-color: #dc2626;
+            background-color: #fee2e2;
+            color: #7f1d1d;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-emerald-600 text-white shadow-md">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white text-emerald-600 p-2 rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl shadow">
+                    🌱
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold leading-tight">Quiz de Ciências</h1>
+                    <p class="text-xs md:text-sm text-emerald-100">3º Ano - Formação e Composição do Solo</p>
+                </div>
+            </div>
+            <div id="quiz-progress-badge" class="hidden bg-emerald-700 px-3 py-1 rounded-full text-xs font-semibold">
+                Questão <span id="current-q-num">1</span>/20
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-3xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="bg-white rounded-2xl shadow-xl p-6 md:p-8 text-center border-4 border-emerald-100">
+            <div class="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner">
+                🔬
+            </div>
+            <h2 class="text-2xl md:text-3xl font-bold text-emerald-800 mb-3">Pronto para testar seus conhecimentos?</h2>
+            <p class="text-slate-600 mb-6 max-w-md mx-auto text-base leading-relaxed">
+                Aprenda brincando sobre a rocha-mãe, o húmus, as minhocas e os segredos do solo que pisamos todos os dias!
+            </p>
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-left text-sm text-amber-900">
+                <p class="font-bold mb-1 flex items-center gap-2"><i class="fa-solid fa-lightbulb text-amber-500"></i> Como funciona:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700">
+                    <li>São <strong>20 questões</strong> com 5 opções cada.</li>
+                    <li>Escolha uma resposta e clique em <strong>Confirmar Resposta</strong>.</li>
+                    <li>Você receberá a explicação na hora!</li>
+                    <li>No final, veja seu relatório detalhado de estudos.</li>
+                </ul>
+            </div>
+            <button onclick="startQuiz()" class="w-full md:w-auto px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-95">
+                Começar o Quiz agora! <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+
+        <!-- Quiz Container -->
+        <div id="quiz-container" class="hidden">
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 rounded-full h-3 mb-6 overflow-hidden">
+                <div id="progress-bar" class="bg-emerald-500 h-3 rounded-full transition-all duration-300" style="width: 5%"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-white rounded-2xl shadow-lg p-5 md:p-7 border border-slate-100 relative">
+                <div class="flex justify-between items-center mb-4">
+                    <span id="question-category" class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        Categoria
+                    </span>
+                    <span class="text-xs font-semibold text-slate-400">Pergunta <span id="q-number">1</span> de 20</span>
+                </div>
+
+                <h3 id="question-text" class="text-lg md:text-xl font-bold text-slate-800 mb-6 leading-snug">
+                    Carregando pergunta...
+                </h3>
+
+                <!-- Options -->
+                <div id="options-container" class="space-y-3 mb-6">
+                    <!-- Dynamic Options -->
+                </div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-area" class="hidden rounded-xl p-4 mb-6 border text-sm leading-relaxed">
+                    <div id="feedback-title" class="font-bold flex items-center gap-2 text-base mb-1"></div>
+                    <div id="feedback-text" class="text-slate-700"></div>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 border-t border-slate-100">
+                    <button id="prev-btn" onclick="prevQuestion()" class="w-full sm:w-auto px-4 py-2 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-50 font-semibold disabled:opacity-40 disabled:cursor-not-allowed text-sm">
+                        <i class="fa-solid fa-chevron-left mr-1"></i> Anterior
+                    </button>
+                    
+                    <button id="confirm-btn" onclick="confirmAnswer()" disabled class="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition">
+                        Confirmar Resposta
+                    </button>
+
+                    <button id="next-btn" onclick="nextQuestion()" class="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md transition text-sm">
+                        Próxima <i class="fa-solid fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden bg-white rounded-2xl shadow-xl p-6 md:p-8 border-4 border-emerald-100">
+            <div class="text-center mb-6">
+                <div id="result-icon" class="w-20 h-20 mx-auto mb-3 rounded-full flex items-center justify-center text-4xl shadow-inner">
+                    🏆
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800">Relatório de Desempenho</h2>
+                <p class="text-slate-500 text-sm">Veja como você se saiu no teste sobre o solo!</p>
+            </div>
+
+            <!-- Score Cards Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 text-center">
+                <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+                    <span class="block text-2xl font-bold text-emerald-600" id="correct-count">0</span>
+                    <span class="text-xs font-semibold text-emerald-800">Acertos</span>
+                </div>
+                <div class="bg-red-50 p-3 rounded-xl border border-red-200">
+                    <span class="block text-2xl font-bold text-red-600" id="incorrect-count">0</span>
+                    <span class="text-xs font-semibold text-red-800">Erros</span>
+                </div>
+                <div class="bg-blue-50 p-3 rounded-xl border border-blue-200">
+                    <span class="block text-2xl font-bold text-blue-600" id="score-percentage">0%</span>
+                    <span class="text-xs font-semibold text-blue-800">Porcentagem</span>
+                </div>
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200">
+                    <span class="block text-2xl font-bold text-amber-600" id="total-questions">20</span>
+                    <span class="text-xs font-semibold text-amber-800">Total</span>
+                </div>
+            </div>
+
+            <!-- Learning Guidance / Study Recommendations -->
+            <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 mb-6">
+                <h3 class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-emerald-600"></i> Direcionamento de Estudos:
+                </h3>
+                <div id="study-guidance" class="text-sm text-slate-700 leading-relaxed space-y-2">
+                    <!-- Guidance text inserted by JS -->
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="restartQuiz()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> Tentar Novamente
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500">
+        <p>Quiz Educativo de Ciências - 3º Ano do Ensino Fundamental I</p>
+    </footer>
+
+    <script>
+        const quizData = [
+            {
+                category: "Formação do Solo",
+                question: "O solo não surge do nada. Ele é formado ao longo de milhões de anos a partir do desgaste de uma rocha principal. Como é chamada essa rocha que fica na superfície e dá origem ao solo?",
+                options: [
+                    "Rocha-mãe",
+                    "Rocha de Areia",
+                    "Rocha de Húmus",
+                    "Rocha de Vidro",
+                    "Rocha Filhote"
+                ],
+                correct: 0,
+                explanation: "Exatas palavras do livro: 'Quando dão origem aos solos, as rochas são chamadas de rochas-mãe'. Elas sofrem a ação da chuva, vento e sol até formarem o solo."
+            },
+            {
+                category: "Componentes Orgânicos",
+                question: "Enquanto caminhava pelo jardim da escola, Lucas viu uma camada escura no solo com folhas secas e restos de insetos desfeitos. Esse composto escuro e cheio de nutrientes chama-se:",
+                options: [
+                    "Argila",
+                    "Húmus",
+                    "Feldspato",
+                    "Areia",
+                    "Quartzo"
+                ],
+                correct: 1,
+                explanation: "O húmus é um composto escuro rico em nutrientes, formado pela decomposição dos restos de seres vivos (como plantas e animais mortos)."
+            },
+            {
+                category: "Formação do Solo",
+                question: "O processo de formação do solo é muito lento. De acordo com o livro, quanto tempo esse processo demora para acontecer?",
+                options: [
+                    "Alguns dias de chuva forte",
+                    "Apenas alguns meses",
+                    "Exatamente 10 anos",
+                    "Milhões de anos",
+                    "Cerca de uma semana"
+                ],
+                correct: 3,
+                explanation: "O livro destaca na representação esquemática que o processo de formação do solo demora milhões de anos para acontecer."
+            },
+            {
+                category: "Fatores Ambientais",
+                question: "A rocha-mãe começa a se fragmentar (quebrar em pedaços menores) por causa da ação de vários fatores ambientais. Quais são esses fatores apresentados no livro?",
+                options: [
+                    "Chuva, vento, luz do Sol, mudanças de temperatura e ação dos seres vivos",
+                    "Apenas a água do rio e o lixo jogado pelas pessoas",
+                    "Somente os raios e os terremotos",
+                    "Apenas a fumaça das fábricas e os carros",
+                    "Somente a neve e o gelo do polo norte"
+                ],
+                correct: 0,
+                explanation: "O livro ensina que as rochas na superfície ficam expostas a chuva, vento, luz solar, mudanças de temperatura e seres vivos, que causam sua fragmentação."
+            },
+            {
+                category: "Camadas do Solo",
+                question: "Ao observar um corte no solo em um barranco, percebemos diferentes camadas. Qual é a característica das camadas que ficam na parte mais da superfície?",
+                options: [
+                    "São as mais antigas e duras do planeta",
+                    "São formadas apenas por vidro",
+                    "São as mais recentes",
+                    "Não possuem nenhum tipo de matéria orgânica",
+                    "São feitas inteiramente de pedra sólida sem quebrar"
+                ],
+                correct: 2,
+                explanation: "O livro afirma explicitamente no esquema: 'As camadas da superfície do solo são as mais recentes'."
+            },
+            {
+                category: "Componentes do Solo",
+                question: "O solo é uma mistura completa. De acordo com o livro, do que o solo é composto?",
+                options: [
+                    "Apenas de água e ar",
+                    "Somente de pedras grandes e areia",
+                    "Mistura de rochas, minerais, matéria orgânica e água",
+                    "Apenas de plástico e folhas secas",
+                    "Somente de tinta e terra vermelha"
+                ],
+                correct: 2,
+                explanation: "O texto define o solo como uma mistura de vários componentes: rochas, minerais, matéria orgânica (restos de seres vivos) e água."
+            },
+            {
+                category: "Componentes Minerais",
+                question: "Alguns minerais fazem parte da composição do solo. Qual das opções traz nomes de minerais presentes no solo mostrados no livro?",
+                options: [
+                    "Ouro, prata e bronze",
+                    "Feldspato, quartzo e mica",
+                    "Sal, açúcar e carvão",
+                    "Plástico, papel e metal",
+                    "Aço, alumínio e cobre"
+                ],
+                correct: 1,
+                explanation: "Na tabela de componentes minerais, o livro destaca que 'O feldspato, o quartzo e a mica são alguns dos principais minerais presentes no solo'."
+            },
+            {
+                category: "Componentes Minerais",
+                question: "Sobre a argila, uma criança percebeu que suas partículas são super pequenas e grudam fácil. O livro explica que quando os fragmentos de argila se juntam, eles formam:",
+                options: [
+                    "Grandes rochas-mãe",
+                    "Torrões",
+                    "Grãos soltos de areia",
+                    "Húmus bem escuro",
+                    "Pedaços de mica"
+                ],
+                correct: 1,
+                explanation: "Segundo o livro: 'Os fragmentos de argila são muito pequenos e podem se juntar, formando torrões'."
+            },
+            {
+                category: "Componentes Minerais",
+                question: "Ao ir à praia ou brincar num parque, você sente os grãos de areia. Comparando com os fragmentos de argila, como são os grãos de areia?",
+                options: [
+                    "São menores que os de argila",
+                    "São do mesmo tamanho exato dos de argila",
+                    "São maiores que os de argila",
+                    "São feitos de restos de animais mortos",
+                    "Não são considerados minerais"
+                ],
+                correct: 2,
+                explanation: "O livro explica claramente: 'Os fragmentos de areia são maiores que os de argila'."
+            },
+            {
+                category: "Vida no Solo",
+                question: "As minhocas, formigas e cupins vivem dentro do solo. Além desses animais que conseguimos ver, existem milhões de seres vivos no solo que NÃO são vistos a olho nu. São eles:",
+                options: [
+                    "Tatus e cobras",
+                    "Fungos e bactérias",
+                    "Pássaros e borboletas",
+                    "Peixes e girinos",
+                    "Gatos e cachorros"
+                ],
+                correct: 1,
+                explanation: "O livro destaca que além de minhocas e formigas, 'há milhões de seres que não são vistos a olho nu, como fungos e bactérias'."
+            },
+            {
+                category: "Vida e Solo",
+                question: "Por que as minhocas são tão importantes para o solo e para as plantas de um jardim?",
+                options: [
+                    "Porque elas comem todas as pedras da terra",
+                    "Porque ajudam a decompor a matéria orgânica e cavam túneis que ajudam na entrada de ar e água",
+                    "Porque elas secam totalmente a água do solo",
+                    "Porque elas transformam a areia em feldspato",
+                    "Porque impedem a entrada de água da chuva"
+                ],
+                correct: 1,
+                explanation: "As minhocas são componentes orgânicos vivos que interagem com o solo, ajudando na formação do húmus e na aeração através de seus túneis."
+            },
+            {
+                category: "Habitat",
+                question: "O livro afirma que o solo é um 'habitat' essencial. O que significa dizer que o solo é um habitat?",
+                options: [
+                    "Que o solo é uma pedra gigante e dura",
+                    "Que o solo serve apenas para construir casas e prédios",
+                    "Que o solo é um abrigo/moradia onde várias formas de vida habitam e interagem",
+                    "Que o solo só existe dentro dos vasos de flores",
+                    "Que o solo não possui nenhuma utilidade para a natureza"
+                ],
+                correct: 2,
+                explanation: "O solo é o habitat (ambiente de moradia e sobrevivência) essencial para plantas, animais e microrganismos."
+            },
+            {
+                category: "Desenvolvimento das Plantas",
+                question: "Por que um solo rico em húmus é excelente para o cultivo de hortas e plantações?",
+                options: [
+                    "Porque o húmus é escuro e deixa a horta mais bonita",
+                    "Porque o húmus é rico em nutrientes que favorecem o desenvolvimento de novas plantas",
+                    "Porque o húmus impede que a água da chuva entre na terra",
+                    "Porque o húmus mata as minhocas da terra",
+                    "Porque o húmus faz a terra ficar dura como pedra"
+                ],
+                correct: 1,
+                explanation: "O livro explica: 'Ele [o húmus] é rico em nutrientes que favorecem o desenvolvimento de novas plantas'."
+            },
+            {
+                category: "Explorando o Solo",
+                question: "Na aula prática 'Para Explorar', os alunos colheram amostras de solo. Quais características físicas e sensoriais foram propostas para análise na tabela?",
+                options: [
+                    "Preço, peso, sabor e se flutua na água",
+                    "Cor, textura, tamanho das partículas, cheiro e permeabilidade",
+                    "Se é doce ou salgado e a velocidade com que queima",
+                    "Apenas a quantidade de pedras e o nome do dono da terra",
+                    "A quantidade de lixo, a marca da terra e se brilha no escuro"
+                ],
+                correct: 1,
+                explanation: "A página 114 traz a tabela de registro com: Cor do solo, Textura, Tamanho das partículas, Cheiro (úmido ou seco) e Permeabilidade."
+            },
+            {
+                category: "Investigação Prática",
+                question: "Para observar bem de perto os pequenos grãos de areia, argila e pequeninos insetos no solo, qual instrumento de ampliação foi sugerido na lista de materiais do livro?",
+                options: [
+                    "Termômetro",
+                    "Lupa",
+                    "Régua de metal",
+                    "Telescópio",
+                    "Bens de borracha"
+                ],
+                correct: 1,
+                explanation: "A lista de materiais para explorando o solo inclui expressamente o uso de 'Lupa' para observar os detalhes das partículas do solo."
+            },
+            {
+                category: "Propriedades do Solo",
+                question: "A 'permeabilidade' do solo é uma característica testada na aula prática. O que a permeabilidade mede?",
+                options: [
+                    "O peso total do solo em quilos",
+                    "A facilidade ou velocidade com que a água passa pelo solo (rápida, média ou lenta)",
+                    "A quantidade de minhocas por metro quadrado",
+                    "O cheiro que o solo solta quando está sob o Sol",
+                    "A cor exata do solo sob a luz do dia"
+                ],
+                correct: 1,
+                explanation: "Permeabilidade refere-se ao fluxo de água no solo, classificado na tabela do livro como rápida, média ou lenta."
+            },
+            {
+                category: "Propriedades do Solo",
+                question: "Se uma amostra de solo possui grãos maiores como a areia, a água passa por ela muito rapidamente. Dizemos então que esse solo tem permeabilidade:",
+                options: [
+                    "Lenta",
+                    "Rápida",
+                    "Congelada",
+                    "Inexistente",
+                    "Impossível"
+                ],
+                correct: 1,
+                explanation: "Solos com partículas maiores (como a areia) deixam a água escorrer facilmente, tendo permeabilidade rápida."
+            },
+            {
+                category: "Classificação",
+                question: "No livro, os componentes do solo foram divididos em duas categorias na tabela da página 113. Quais são essas duas categorias?",
+                options: [
+                    "Componentes Plásticos e Componentes de Vidro",
+                    "Componentes Minerais e Componentes Orgânicos",
+                    "Componentes Líquidos e Componentes Gasosos",
+                    "Componentes Quentes e Componentes Frios",
+                    "Componentes Grandes e Componentes Invisíveis"
+                ],
+                correct: 1,
+                explanation: "A tabela da página 113 organiza os elementos em 'Componentes minerais' (feldspato, argila, areia) e 'Componentes orgânicos' (minhocas, húmus)."
+            },
+            {
+                category: "Textura do Solo",
+                question: "Como podemos definir a 'textura' do solo quando pegamos uma amostra na mão durante a aula de Ciências?",
+                options: [
+                    "É a temperatura medida em graus",
+                    "É a sensação ao tato (se o solo é áspero, macio, pegajoso ou grudento)",
+                    "É o som que o solo faz quando chove",
+                    "É a quantidade de luz que o solo reflete",
+                    "É a cor que fica nas mãos depois de lavar"
+                ],
+                correct: 1,
+                explanation: "A textura relaciona-se à sensação ao tocar o solo (tato), percebendo se ele é fino, macio, áspero (arenoso) ou grudento (argiloso)."
+            },
+            {
+                category: "Cuidado e Aplicação",
+                question: "Mariana quer plantar flores no jardim de sua casa. Sabendo o que aprendeu na lição de Ciências, qual é o solo mais adequado para as plantas crescerem fortes?",
+                options: [
+                    "Um solo composto apenas de pedras grandes de feldspato",
+                    "Um solo seco, sem água e sem nenhuma matéria orgânica",
+                    "Um solo humífero (com boa quantidade de húmus, areia, argila, ar e água)",
+                    "Um solo coberto de cimento para não sujar as raízes",
+                    "Um solo feito de pedaços de plástico e copos descartáveis"
+                ],
+                correct: 2,
+                explanation: "O solo ideal para o abrigo e nutrição das plantas é o solo equilibrado e humífero, contendo minerais, ar, água e matéria orgânica rica em nutrientes."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let selectedOption = null;
+        let userAnswers = new Array(quizData.length).fill(null);
+        let confirmedQuestions = new Array(quizData.length).fill(false);
+
+        function startQuiz() {
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            document.getElementById('quiz-progress-badge').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = quizData[currentQuestion];
+            document.getElementById('q-number').innerText = currentQuestion + 1;
+            document.getElementById('current-q-num').innerText = currentQuestion + 1;
+            document.getElementById('question-category').innerText = q.category;
+            document.getElementById('question-text').innerText = q.question;
+            
+            // Progress bar
+            const progress = ((currentQuestion + 1) / quizData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            // Reset selected state for current view
+            selectedOption = userAnswers[currentQuestion];
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const isConfirmed = confirmedQuestions[currentQuestion];
+
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = `option-card w-full text-left p-4 rounded-xl border-2 border-slate-200 bg-white font-medium text-slate-700 flex items-start gap-3 transition`;
+                
+                let letter = String.fromCharCode(65 + index); // A, B, C, D, E
+
+                if (isConfirmed) {
+                    btn.classList.add('disabled');
+                    if (index === q.correct) {
+                        btn.classList.add('correct');
+                        btn.innerHTML = `<span class="bg-emerald-600 text-white rounded-lg w-6 h-6 flex items-center justify-center font-bold text-xs shrink-0">${letter}</span> <span class="flex-grow">${opt}</span> <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>`;
+                    } else if (index === userAnswers[currentQuestion]) {
+                        btn.classList.add('incorrect');
+                        btn.innerHTML = `<span class="bg-red-600 text-white rounded-lg w-6 h-6 flex items-center justify-center font-bold text-xs shrink-0">${letter}</span> <span class="flex-grow">${opt}</span> <i class="fa-solid fa-circle-xmark text-red-600 text-lg"></i>`;
+                    } else {
+                        btn.innerHTML = `<span class="bg-slate-100 text-slate-500 rounded-lg w-6 h-6 flex items-center justify-center font-bold text-xs shrink-0">${letter}</span> <span class="flex-grow">${opt}</span>`;
+                    }
+                } else {
+                    if (selectedOption === index) {
+                        btn.classList.add('selected');
+                    }
+                    btn.onclick = () => selectOption(index);
+                    btn.innerHTML = `<span class="bg-slate-100 text-slate-600 rounded-lg w-6 h-6 flex items-center justify-center font-bold text-xs shrink-0">${letter}</span> <span class="flex-grow">${opt}</span>`;
+                }
+
+                optionsContainer.appendChild(btn);
+            });
+
+            // Handle navigation & confirm buttons
+            document.getElementById('prev-btn').disabled = currentQuestion === 0;
+            
+            const confirmBtn = document.getElementById('confirm-btn');
+            if (isConfirmed) {
+                confirmBtn.classList.add('hidden');
+                showFeedback(userAnswers[currentQuestion] === q.correct, q.explanation, q.options[q.correct]);
+            } else {
+                confirmBtn.classList.remove('hidden');
+                confirmBtn.disabled = selectedOption === null;
+                document.getElementById('feedback-area').classList.add('hidden');
+            }
+
+            const nextBtn = document.getElementById('next-btn');
+            if (currentQuestion === quizData.length - 1) {
+                nextBtn.innerHTML = `Ver Relatório <i class="fa-solid fa-trophy ml-1"></i>`;
+            } else {
+                nextBtn.innerHTML = `Próxima <i class="fa-solid fa-chevron-right ml-1"></i>`;
+            }
+        }
+
+        function selectOption(index) {
+            if (confirmedQuestions[currentQuestion]) return;
+            selectedOption = index;
+            userAnswers[currentQuestion] = index;
+
+            const cards = document.querySelectorAll('.option-card');
+            cards.forEach((card, idx) => {
+                if (idx === index) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
+
+            document.getElementById('confirm-btn').disabled = false;
+        }
+
+        function confirmAnswer() {
+            if (selectedOption === null) return;
+
+            confirmedQuestions[currentQuestion] = true;
+            const q = quizData[currentQuestion];
+            const isCorrect = selectedOption === q.correct;
+
+            loadQuestion();
+        }
+
+        function showFeedback(isCorrect, explanation, correctAnswerText) {
+            const feedbackArea = document.getElementById('feedback-area');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackText = document.getElementById('feedback-text');
+
+            feedbackArea.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'bg-red-50', 'border-red-200');
+
+            if (isCorrect) {
+                feedbackArea.classList.add('bg-emerald-50', 'border-emerald-200');
+                feedbackTitle.className = 'font-bold flex items-center gap-2 text-base mb-1 text-emerald-800';
+                feedbackTitle.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> Resposta Correta! Parabéns!`;
+                feedbackText.innerHTML = explanation;
+            } else {
+                feedbackArea.classList.add('bg-red-50', 'border-red-200');
+                feedbackTitle.className = 'font-bold flex items-center gap-2 text-base mb-1 text-red-800';
+                feedbackTitle.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-600"></i> Resposta Incorreta.`;
+                feedbackText.innerHTML = `<strong>A resposta certa é: ${correctAnswerText}</strong><br><br>${explanation}`;
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < quizData.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-progress-badge').classList.add('hidden');
+            document.getElementById('results-screen').classList.remove('hidden');
+
+            let correctCount = 0;
+            userAnswers.forEach((ans, index) => {
+                if (ans === quizData[index].correct) {
+                    correctCount++;
+                }
+            });
+
+            const incorrectCount = quizData.length - correctCount;
+            const percentage = Math.round((correctCount / quizData.length) * 100);
+
+            document.getElementById('correct-count').innerText = correctCount;
+            document.getElementById('incorrect-count').innerText = incorrectCount;
+            document.getElementById('score-percentage').innerText = `${percentage}%`;
+
+            const iconDiv = document.getElementById('result-icon');
+            const guidanceDiv = document.getElementById('study-guidance');
+
+            if (percentage >= 80) {
+                iconDiv.className = 'w-20 h-20 mx-auto mb-3 rounded-full flex items-center justify-center text-4xl bg-emerald-100 text-emerald-600 shadow-inner';
+                iconDiv.innerHTML = '🌟';
+                guidanceDiv.innerHTML = `
+                    <p class="font-bold text-emerald-700">Excelente desempenho! Você mandou muito bem!</p>
+                    <p>Você demonstrou compreender perfeitamente como o solo se forma a partir da rocha-mãe, a importância do húmus e dos componentes minerais e orgânicos. Continue assim!</p>
+                `;
+            } else if (percentage >= 50) {
+                iconDiv.className = 'w-20 h-20 mx-auto mb-3 rounded-full flex items-center justify-center text-4xl bg-amber-100 text-amber-600 shadow-inner';
+                iconDiv.innerHTML = '👍';
+                guidanceDiv.innerHTML = `
+                    <p class="font-bold text-amber-700">Bom trabalho! Você está no caminho certo!</p>
+                    <p><strong>Dica de estudo:</strong> Revise as páginas do livro que falam sobre os componentes minerais (feldspato, argila e areia) e repasse a aula prática sobre cor, textura e permeabilidade do solo para fixar ainda mais!</p>
+                `;
+            } else {
+                iconDiv.className = 'w-20 h-20 mx-auto mb-3 rounded-full flex items-center justify-center text-4xl bg-red-100 text-red-600 shadow-inner';
+                iconDiv.innerHTML = '📚';
+                guidanceDiv.innerHTML = `
+                    <p class="font-bold text-red-700">Vamos praticar mais um pouquinho?</p>
+                    <p>Não se preocupe, aprender leva tempo! Recomendamos ler novamente:</p>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li><strong>Página 112:</strong> Como a rocha-mãe vira solo com o tempo.</li>
+                        <li><strong>Página 113:</strong> A diferença entre minerais (areia/argila) e matéria orgânica (húmus/minhocas).</li>
+                        <li><strong>Página 114:</strong> As propriedades do solo (cor, textura e permeabilidade).</li>
+                    </ul>
+                `;
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            selectedOption = null;
+            userAnswers = new Array(quizData.length).fill(null);
+            confirmedQuestions = new Array(quizData.length).fill(false);
+
+            document.getElementById('results-screen').classList.add('hidden');
+            document.getElementById('welcome-screen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
